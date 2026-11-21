@@ -1,6 +1,9 @@
 # we write code here
 
 from fastapi import FastAPI, HTTPException, Header
+import functions
+
+app = FastAPI()
 
 # E2 submits new feedback
 @app.post("/feedback", status_code=201)
