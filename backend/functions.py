@@ -21,3 +21,25 @@ def get_user_feedback(user_id):
         })
     session.close()
     return result
+
+
+# E2 submits new feedback for the user that has logged in
+def add_feedback(user_id, subject, message, rating):
+    session = Session(engine)
+    feedback = Feedback(
+        user_id=user_id,
+        subject=subject,
+        message=message,
+        rating=rating
+    )
+    session.add(feedback)
+    session.commit()
+    data = {
+        "id": feedback.id,
+        "subject": feedback.subject,
+        "message": feedback.message,
+        "rating": feedback.rating,
+        "created_at": feedback.created_at
+    }
+    session.close()
+    return data
