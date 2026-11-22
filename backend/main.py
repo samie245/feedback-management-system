@@ -34,7 +34,8 @@ def get_feedback(token = Header(None)):
     return functions.get_user_feedback(user_id=user["user_id"])
     
 # E2 submits new feedback
-def submit_feedback(subject=None, message=None, rating: int = None, authorization: str = Header(None)):
+@app.post("/feedback")
+def submit_feedback(creds: FeedbackCreate, authorization: str = Header(None)):
     authorize(authorization, ["user"])
     user_id = functions.get_user_id(authorization)
     if user_id is None:
