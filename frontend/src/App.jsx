@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Dashboard from "./components/Dashboard";
 import LoginPage from "./components/LoginPage";
+import Register from "./components/RegisterUser";
 
 const API_URL = "http://127.0.0.1:8001";
 
@@ -12,6 +13,28 @@ function App() {
   const [message, setMessage] = useState("");
 
   // registration code
+  // R1: sends the new user's details to the backend
+  function registerUser(username, email, password, role) {
+    fetch(API_URL + "/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password, role }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.detail) {
+          if (typeof data.detail === "string") {
+            setMessage(data.detail);
+          } else {
+            setMessage("Please fill in all the fields");
+          }
+        } else {
+          setMessage("Registered successfully, please log in");
+          setPage("login");
+        }
+      })
+      .catch(() => setMessage("Could not reach the server"));
+  }
 
   // login code
    const [loginError, setLoginError] = useState("");
@@ -86,8 +109,9 @@ function App() {
       <h1>Feedback Management System</h1>
       {message && <p>{message}</p>}
 
-      {/* registration page goes here (teammate) */}
-
+      {page === "register" && (
+        <Register registerUser={registerUser} setPage={setPage} />
+      )}
       {page === "login" && (
         <LoginPage login={login} loginError={loginError} setPage={setPage} />
       )}
