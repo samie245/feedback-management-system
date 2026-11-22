@@ -1,10 +1,18 @@
-# we write code here
-
 from fastapi import FastAPI, HTTPException, Header, Body
 import functions
-ROLE= ["staff", "user"]
+from fastapi.middleware.cors import CORSMiddleware
+from model import RegisterRequest, LoginRequest, FeedbackCreate
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+ROLE= ["staff", "user"]
 
 def authorize(token,allowed_role):
     
@@ -13,8 +21,17 @@ def authorize(token,allowed_role):
         raise HTTPException(status_code=401, detail = "Invalid or Expired token")
     if payload["role"] not in allowed_role:
         raise HTTPException(status_code=403, detail="You do not have the permission to do this")
+    return payload
     
-    
+# E1 gets all feedback of the user that has logged in
+@app.get("/feedback")
+def get_feedback(token = Header(None)):
+    user = functions.verify_token(token=token, token_type="access")
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    if user["role"] not in ROLE:
+        raise HTTPException(status_code=403, detail="You're not allowed to do this")
+    return functions.get_user_feedback(user_id=user["user_id"])
     
 # E2 submits new feedback
 def submit_feedback(subject=None, message=None, rating: int = None, authorization: str = Header(None)):
@@ -30,19 +47,17 @@ def submit_feedback(subject=None, message=None, rating: int = None, authorizatio
 
 #E1
 @app.post("/register")
-def register_user(username = Body() , password= Body(), role = Body("staff"), email =Body()):
-    if role not in ROLE:
-        raise HTTPException(status_code=403, detail="role should be only staff or admin")
-    if functions.register_user(username=username, password=password, role=role, email = email):
-        return{"message" : "user registered successfully"}
-    raise HTTPException(status_code=400, detail="user already exists")
+def register_user(creds: RegisterRequest):
+    if functions.register_user(username=creds.username, password=creds.password, role=creds.role, email=creds.email):
+        return {"message": "user registered successfully"}
+    raise HTTPException(status_code=409, detail="user already exists")
 
 #E2
 @app.post("/login")
-def Login( password= Body(), email =Body()):
-    token = functions.verify_login(password=password,email=email)
+def Login(creds: LoginRequest):
+    token = functions.verify_login(password=creds.password, email=creds.email)
     if not token:
-        raise HTTPException(status_code=401, detail= "Invalid Credential")
+        raise HTTPException(status_code=401, detail="Invalid Credential")
     return token
 
 #E3

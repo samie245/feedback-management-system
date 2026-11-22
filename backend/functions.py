@@ -6,8 +6,6 @@ import jwt
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
-# moshi i've imported user already so check it out in models before you write code
-
 ph = PasswordHasher()
 
 engine = create_engine("sqlite:///feedback.db")
