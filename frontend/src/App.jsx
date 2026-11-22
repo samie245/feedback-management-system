@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Dashboard from "./components/Dashboard";
+import LoginPage from "./components/LoginPage";
 
 const API_URL = "http://127.0.0.1:8001";
 
@@ -13,6 +14,28 @@ function App() {
   // registration code
 
   // login code
+   const [loginError, setLoginError] = useState("");
+
+   // A2: logs the user in and stores both tokens
+  function login(email, password) {
+    fetch(API_URL + "/login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({email: email, password: password})
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.detail) {
+          setLoginError(data.detail);
+        } else {
+          setLoginError("");
+          setMessage("");
+          setAccessToken(data.access_token);
+          setRefreshToken(data.refresh_token);
+          setPage("dashboard");
+        }
+      });
+  }
 
   // dashboard code
   const [feedbackList, setFeedbackList] = useState([]);
@@ -27,7 +50,7 @@ function App() {
 
   // E1: gets all the feedback of the logged in user
   function getFeedback(token, tryRefresh) {
-    fetch(API_URL + "/feedback", { headers: { Authorization: "Bearer " + token } })
+      fetch(API_URL + "/feedback", {headers: {token: token}})
       .then((response) => response.json())
       .then((data) => {
         if (data.detail) {
@@ -65,7 +88,9 @@ function App() {
 
       {/* registration page goes here (teammate) */}
 
-      {page === "login" && <p>Login page goes here (teammate)</p>}
+      {page === "login" && (
+        <LoginPage login={login} loginError={loginError} setPage={setPage} />
+      )}
 
       {page === "dashboard" && (
         <Dashboard
