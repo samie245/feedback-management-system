@@ -44,14 +44,14 @@ def submit_feedback(creds: FeedbackCreate, token = Header(None)):
     payload = authorize(token, ROLE)
     return functions.add_feedback(payload["user_id"], creds.subject, creds.message, creds.rating)
 
-#E1
+# register endpoint
 @app.post("/register")
 def register_user(creds: RegisterRequest):
     if functions.register_user(username=creds.username, password=creds.password, role=creds.role, email=creds.email):
         return {"message": "user registered successfully"}
     raise HTTPException(status_code=409, detail="user already exists")
 
-#E2
+# login endpoint
 @app.post("/login")
 def Login(creds: LoginRequest):
     token = functions.verify_login(password=creds.password, email=creds.email)
@@ -59,7 +59,7 @@ def Login(creds: LoginRequest):
         raise HTTPException(status_code=401, detail="Invalid Credential")
     return token
 
-#E3
+# refresh token endpoint
 @app.post("/refresh")
 def refresh(refresh_token = Header(None)):
     payload = functions.verify_token(token=refresh_token, token_type="refresh")
