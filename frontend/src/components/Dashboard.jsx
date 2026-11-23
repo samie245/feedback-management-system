@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 
 function Dashboard({ accessToken, feedbackList, getFeedback, logout }) {
-  // runs once when the dashboard opens: loads the user's feedback (E1)
   useEffect(() => {
     getFeedback(accessToken, true);
   }, []);
