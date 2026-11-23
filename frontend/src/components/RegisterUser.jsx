@@ -4,7 +4,7 @@ function Register({ registerUser, setPage }) {
   const [username, setUsername] = useState("");
   const [email, setUserEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("user");
+  const [role, setRole] = useState("staff");
 
   // R1: send the details to App, which calls the backend
   function handleRegister() {
