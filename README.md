@@ -1,70 +1,137 @@
 # Feedback Management System
 
-**Team:** Darsh, Moshi, Sam
+## 1. Project and team
 
-## Problem Statement
+A feedback app where users register, log in with JWT access and refresh tokens, submit feedback (subject, message, rating from 1 to 5) and see only their own feedback. Passwords are stored as Argon2 hashes. FastAPI + SQLite backend (port 8001), React frontend, Docker, GitHub Actions and AWS EC2.
 
-People give feedback about services, events and experiences, but it's easy to lose it, and nobody wants other people reading what they wrote. This project is a feedback app for that. A user registers with a username, email and password, then logs in to get a JWT access token and a refresh token. After login they can submit feedback (a subject, a message and a rating from 1 to 5) and see all the feedback they have submitted. Each user can only access their own feedback, and passwords are stored as hashes. It is built with a FastAPI + SQLite backend (port 8001) and a React frontend, and it will run in Docker and deploy to AWS EC2 through GitHub Actions.
+| Member | Backend | Frontend |
+|:-------|:--------|:---------|
+| **Toshimah** | A1 register, A2 login and A3 refresh token endpoints (`main.py`, `functions.py`) | Register page |
+| **Samhita** | E1 get feedback endpoint (`main.py`), Pydantic request validation (`model.py`) | Login page |
+| **Darsh** | E2 submit feedback endpoint (`main.py`) | Feedback dashboard (`Dashboard.jsx`): loads the user's feedback, submit form, logout and refresh-token handling |
 
-## Database
+## 2. Live app
 
-One SQLite file, `feedback.db`, with two tables:
+**Public link:** http://<EC2-PUBLIC-IP>
 
-- **users:** id, username, email (unique), hashed_password, created_at
-- **feedback:** id, user_id, subject, message, rating, created_at
-
-## API Endpoints Contribution
-
-| # | What it does | Method | Path | Request body | Success code | Error codes |
-|:-:|:-------------|:------:|:-----|:-------------|:------------:|:------------|
-| A1 | Register a new user | POST | /register | username<br>email<br>password | 201 | 409 (email already registered)<br>422 (missing or empty field, invalid email format) |
-| A2 | Log in and get access and refresh tokens | POST | /login | email<br>password | 200 | 401 (wrong email or password)<br>422 (missing or empty field) |
-| A3 | Get a new access token | POST | /refresh | refresh token | 200 | 401 (invalid or expired refresh token) |
-| E1 | Get all feedback of the logged-in user | GET | /feedback | none (access token in the header) | 200 | 401 (missing, invalid or expired access token) |
-| E2 | Submit new feedback | POST | /feedback | subject<br>message<br>rating (access token in the header) | 201 | 401 (missing, invalid or expired access token)<br>422 (empty subject or message, rating not between 1 and 5) |
-
-## Frontend Contribution
-
-| Member | Files | Endpoints | What they did |
-|:---------:|:---------|:------------:|:-----------------|
-| Darsh | not started yet | | |
-| Moshi | not started yet | | |
-| Sam | not started yet | | |
-
-## Status so far
-
-- The `users` and `feedback` tables are written in `model.py`.
-- E1 (get the user's feedback) and E2 (submit feedback) are written in `functions.py`.
-- The Dockerfile and the GitHub Actions workflow file are in the repo, and are still being finished.
-- The React frontend and the EC2 deployment have not been started.
-
-## How to Run
+## 3. How to run it
 
 ### Backend
-1. Install Python 3.12, the same version the Dockerfile uses.
-2. Open a terminal and go to the backend folder:
-   ```bash
-   cd backend
-   ```
-3. Create and turn on a virtual environment:
-   ```bash
-   py -3.12 -m venv venv
-   venv\Scripts\Activate.ps1
-   ```
-4. Install the dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-5. Run the FastAPI server on port 8001:
-   ```bash
-   uvicorn main:app --reload --port 8001
-   ```
-6. Open the interactive docs:
-   - Swagger UI: [http://127.0.0.1:8001/docs](http://127.0.0.1:8001/docs)
+```bash
+cd backend
+py -3.12 -m venv venv
+venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8001
+```
+On Mac or Linux, use `python3.12 -m venv venv` and `source venv/bin/activate`. Open the API docs at http://127.0.0.1:8001/docs.
 
 ### Frontend
-Coming soon.
+Start the backend first, then in a second terminal:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Open http://localhost:5173.
 
-### Proof of work
+### Docker container
+```bash
+cd backend
+docker build -t feedback-backend .
+docker run -d --name feedback-app -p 8001:8001 feedback-backend
+```
+Open http://127.0.0.1:8001/docs. To stop it and remove the container:
+```bash
+docker stop feedback-app
+docker rm feedback-app
+```
 
-Screenshot of `/docs` to be added once the endpoints are working.
+## 4. API contract
+
+| # | What it does | Method | Path | Request body | Success code |
+|:-:|:-------------|:------:|:-----|:-------------|:------------:|
+| A1 | Register a new user | POST | /register | username<br>email<br>password<br>role (optional, `staff` or `user`) | 200 |
+| A2 | Log in and get access and refresh tokens | POST | /login | email<br>password | 200 |
+| A3 | Get a new access token | POST | /refresh | none (refresh token in the `refresh-token` header) | 200 |
+| E1 | Get all feedback of the logged-in user | GET | /feedback | none (access token in the `token` header) | 200 |
+| E2 | Submit new feedback | POST | /feedback | subject<br>message<br>rating (access token in the `token` header) | 201 |
+
+### Error rules
+
+Every error returns `{"detail": "..."}`.
+
+| Rule | Status |
+|:-----|:------:|
+| Registering with an email that already exists | 409 |
+| Logging in with a wrong email or password | 401 |
+| Invalid or expired access token (or no token) | 401 |
+| Invalid or expired refresh token | 401 |
+| Role not allowed to use the endpoint | 403 |
+| Missing or empty required field | 422 |
+| Rating below 1 or above 5 | 422 |
+| Invalid email format | 422 (not checked yet, see Known issues) |
+
+## 5. Database
+
+One SQLite file, `feedback.db`, with two tables.
+
+**users**
+
+| Column | Notes |
+|:-------|:------|
+| id | primary key |
+| username | |
+| email | unique |
+| password | stores the Argon2 hash, never the plain password |
+| role | `staff` (default) or `user` |
+| created_at | |
+
+**feedback**
+
+| Column | Notes |
+|:-------|:------|
+| id | primary key |
+| user_id | foreign key to `users.id` |
+| subject | |
+| message | |
+| rating | 1 to 5 |
+| created_at | |
+
+## 6. Screenshots
+
+![Registration page](screenshots/registerpage.png)
+The register page, where a new user enters a username, email and password.
+
+![Login page](screenshots/loginpage.png)
+The login page, where the user logs in with email and password.
+
+![Feedback dashboard](screenshots/dashboard.png)
+The dashboard showing the logged-in user's feedback with subject, message, rating and date.
+
+![Error message on screen](screenshots/error-message.png)
+An API error shown on the page.
+
+![Endpoint working in /docs](screenshots/docs-endpoint.png)
+An endpoint returning a successful response in Swagger `/docs`.
+
+![Green GitHub Actions run](screenshots/github-actions.png)
+A successful GitHub Actions run that builds the Docker image and deploys it to EC2.
+
+## 7. Known issues
+
+**Doesn't work yet**
+- An invalid email format is not rejected, because the email field is a plain string.
+- Register returns 200, and the contract expects 201.
+- The tokens are kept in React state, so refreshing the browser logs the user out.
+- Submitting feedback with an expired access token shows an error, and the user must log in again. Only loading the dashboard refreshes the token automatically.
+- `SECRET_KEY` is written in `functions.py`. It should be read from an environment variable and stored in GitHub secrets.
+- The access token is sent in a custom `token` header instead of the standard `Authorization: Bearer` header.
+- The password column is called `password`, not `hashed_password`, and the `role` column and 403 rule are additions beyond the PRD.
+- `feedback.db` is committed to the repo, so it should be ignored by Git and kept only in a persistent folder on EC2.
+
+**With more time**
+- Edit and delete feedback, and show the average rating.
+- Keep the user logged in after a refresh, with safer token storage.
+- Automatic tests (pytest) for each rule in the error table.
+- HTTPS on EC2 and a rate limit on the login endpoint.
