@@ -3,6 +3,8 @@ import functions
 from fastapi.middleware.cors import CORSMiddleware
 from model import RegisterRequest, LoginRequest, FeedbackCreate
 
+# changes by team
+
 app = FastAPI()
 
 app.add_middleware(
