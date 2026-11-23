@@ -5,10 +5,12 @@ from model import Base, Feedback , User
 import jwt
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+import os
 
 ph = PasswordHasher()
 
-engine = create_engine("sqlite:///feedback.db")
+DB_URL = os.getenv("DB_URL", "sqlite:///feedback.db")
+engine = create_engine(DB_URL)
 Base.metadata.create_all(engine)
 
 ACCESS_TOKEN_EXPIRY = 15
