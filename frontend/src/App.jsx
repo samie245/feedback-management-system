@@ -71,23 +71,23 @@ function App() {
     setPage("login");
   }
 
-  // E1: gets all the feedback of the logged in user
-  function getFeedback(token, tryRefresh) {
-      fetch(API_URL + "/feedback", {headers: {token: token}})
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.detail) {
-          if (tryRefresh) {
-            refreshAndReload();
-          } else {
-            setMessage(data.detail);
-          }
+// E1: gets all the feedback of the logged in user
+function getFeedback(token, tryRefresh) {
+  fetch(API_URL + "/feedback", { headers: { token: token } })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.detail) {
+        if (tryRefresh) {
+          refreshAndReload();
         } else {
-          setMessage("");
-          setFeedbackList(data);
+          setMessage(data.detail);
         }
-      });
-  }
+      } else {
+        setMessage("");
+        setFeedbackList(data);
+      }
+    });
+}
 
   // A3: the access token expires
   function refreshAndReload() {
@@ -104,6 +104,25 @@ function App() {
       });
   }
 
+  // E2: submits new feedback
+function addFeedback(subject, text, rating, clearForm) {
+  fetch(API_URL + "/feedback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", token: accessToken },
+    body: JSON.stringify({ subject: subject, message: text, rating: rating * 1 }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.detail) {
+        setMessage(typeof data.detail === "string" ? data.detail : "Fill in the subject and message, and give a rating from 1 to 5");
+      } else {
+        setMessage("Feedback submitted");
+        clearForm();
+        getFeedback(accessToken, true);
+      }
+    });
+}
+
   return (
     <>
       <h1>Feedback Management System</h1>
@@ -117,12 +136,13 @@ function App() {
       )}
 
       {page === "dashboard" && (
-        <Dashboard
-          accessToken={accessToken}
-          feedbackList={feedbackList}
-          getFeedback={getFeedback}
-          logout={logout}
-        />
+       <Dashboard
+         accessToken={accessToken}
+         feedbackList={feedbackList}
+         getFeedback={getFeedback}
+         addFeedback={addFeedback}
+        logout={logout}
+          />
       )}
     </>
   );
