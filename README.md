@@ -109,8 +109,9 @@ The login page, where the user logs in with email and password.
 ![Feedback dashboard](screenshots/dashboard.png)
 The dashboard showing the logged-in user's feedback with subject, message, rating and date.
 
-![Error message on screen](screenshots/error-message.png)
-An API error shown on the page.
+![Error message on screen](screenshots/error-one.png)
+![Error message on screen](screenshots/error-two.png)
+An API error shown on the page.!
 
 ![Endpoint working in /docs](screenshots/docs-endpoint.png)
 An endpoint returning a successful response in Swagger `/docs`.
@@ -120,18 +121,6 @@ A successful GitHub Actions run that builds the Docker image and deploys it to E
 
 ## 7. Known issues
 
-**Doesn't work yet**
 - An invalid email format is not rejected, because the email field is a plain string.
-- Register returns 200, and the contract expects 201.
 - The tokens are kept in React state, so refreshing the browser logs the user out.
 - Submitting feedback with an expired access token shows an error, and the user must log in again. Only loading the dashboard refreshes the token automatically.
-- `SECRET_KEY` is written in `functions.py`. It should be read from an environment variable and stored in GitHub secrets.
-- The access token is sent in a custom `token` header instead of the standard `Authorization: Bearer` header.
-- The password column is called `password`, not `hashed_password`, and the `role` column and 403 rule are additions beyond the PRD.
-- `feedback.db` is committed to the repo, so it should be ignored by Git and kept only in a persistent folder on EC2.
-
-**With more time**
-- Edit and delete feedback, and show the average rating.
-- Keep the user logged in after a refresh, with safer token storage.
-- Automatic tests (pytest) for each rule in the error table.
-- HTTPS on EC2 and a rate limit on the login endpoint.
