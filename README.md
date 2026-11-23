@@ -12,7 +12,7 @@ A feedback app where users register, log in with JWT access and refresh tokens, 
 
 ## 2. Live app
 
-**Public link:** http://<EC2-PUBLIC-IP>
+**Public link:** "http://3.111.42.28:8001/docs"
 
 ## 3. How to run it
 
@@ -33,7 +33,7 @@ cd frontend
 npm install
 npm run dev
 ```
-Open http://localhost:5173.
+Open http://localhost:5174.
 
 ### Docker container
 ```bash
@@ -41,7 +41,7 @@ cd backend
 docker build -t feedback-backend .
 docker run -d --name feedback-app -p 8001:8001 feedback-backend
 ```
-Open http://127.0.0.1:8001/docs. To stop it and remove the container:
+Open http://3.111.42.28:8001/docs To stop it and remove the container:
 ```bash
 docker stop feedback-app
 docker rm feedback-app
