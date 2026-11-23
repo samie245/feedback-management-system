@@ -3,7 +3,7 @@ import Dashboard from "./components/Dashboard";
 import LoginPage from "./components/LoginPage";
 import Register from "./components/RegisterUser";
 
-const API_URL = "http://127.0.0.1:8001";
+const API_URL = "http://3.111.42.28:8001";
 
 function App() {
   // shared states: the Registration and Login code uses these too
