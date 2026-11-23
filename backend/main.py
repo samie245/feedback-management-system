@@ -34,17 +34,15 @@ def get_feedback(token = Header(None)):
     return functions.get_user_feedback(user_id=user["user_id"])
     
 # E2 submits new feedback
-@app.post("/feedback")
-def submit_feedback(creds: FeedbackCreate, authorization: str = Header(None)):
-    authorize(authorization, ["user"])
-    user_id = functions.get_user_id(authorization)
-    if user_id is None:
-        raise HTTPException(status_code=401, detail="Invalid or missing token")
-    if not creds.subject or not creds.message or creds.rating is None:
-        raise HTTPException(status_code=422, detail="Subject, message and rating are required")
-    if creds.rating < 1 or creds.rating > 5:
-        raise HTTPException(status_code=422, detail="Rating must be between 1 and 5")
-    return functions.add_feedback(user_id, creds.subject, creds.message, creds.rating)
+@app.post("/feedback", status_code=201)
+def submit_feedback(creds: FeedbackCreate, token = Header(None)):
+    user = functions.verify_token(token=token, token_type="access")
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    if user["role"] not in ROLE:
+            raise HTTPException(status_code=403, detail="You're not allowed to do this")
+    payload = authorize(token, ROLE)
+    return functions.add_feedback(payload["user_id"], creds.subject, creds.message, creds.rating)
 
 #E1
 @app.post("/register")
