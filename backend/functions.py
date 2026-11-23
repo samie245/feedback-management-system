@@ -15,7 +15,7 @@ Base.metadata.create_all(engine)
 
 ACCESS_TOKEN_EXPIRY = 15
 REFRESH_TOKEN_EXPIRY = 7 * 24 * 60
-SECRET_KEY = "SECRET123"
+SECRET_KEY = secrets.SECRET_KEY
 ALGORITHM = "HS256"
 
 # E1 gets all feedback of the user that has logged in
